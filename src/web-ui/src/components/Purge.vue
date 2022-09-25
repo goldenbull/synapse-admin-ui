@@ -18,7 +18,7 @@
   </div>
   <div class="row m-2">
     <div class="overflow-scroll" style="height: 500px">
-      <p class="text-break m-0" v-for="msg in debug_msg">{{ msg }}</p>
+      <p class="text-break m-0" v-for="msg in debug_msg.reverse()">{{ msg }}</p>
     </div>
   </div>
 </template>
