@@ -113,6 +113,10 @@ def list_messages():
     pprint(requests.get(f"{host}{url}", headers=headers).json())
 
 
+def purge_media():
+    url = "POST /_synapse/admin/v1/media/delete?before_ts=<before_ts>"
+
+
 if __name__ == '__main__':
     # users = list_users()
     # query_all_user_session(users)

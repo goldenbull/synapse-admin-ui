@@ -7,6 +7,7 @@ verify_ssl = true
 arrow = "*"
 fastapi = "*"
 pandas = "*"
+psycopg2-binary = "*"
 requests = "*"
 websockets = "*"
 uvicorn = "*"
