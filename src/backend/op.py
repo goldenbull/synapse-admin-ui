@@ -7,8 +7,8 @@ import json
 host = "http://localhost:8008"
 admin_token = "syt_YWRtaW4_OcNnpGDumDEkiYeyPXas_0yuOxS"
 headers = {"Authorization": f"Bearer {admin_token}"}
-user_id = "@jg:data.sfuc9tsqc4qwkjm.com"
-room_id = "!qVtBGIFOfCYLDoIzYM:data.sfuc9tsqc4qwkjm.com"
+user_id = "@yiyangqianniu2.0:data.sfuc9tsqc4qwkjm.com"
+room_id = "!cZKVGapltTxGoZfbMO:data.sfuc9tsqc4qwkjm.com"
 
 
 def list_users():
@@ -108,10 +108,15 @@ def reset_user_passwd():
     print(rsp.json())
 
 
+def list_messages():
+    url = f"/_synapse/admin/v1/rooms/{room_id}/messages?dir=b"
+    pprint(requests.get(f"{host}{url}", headers=headers).json())
+
+
 if __name__ == '__main__':
     # users = list_users()
     # query_all_user_session(users)
-    list_activities()
+    # list_activities()
     # reset_user_passwd()
     # list_rooms()
     # change_username()
@@ -119,3 +124,4 @@ if __name__ == '__main__':
     # send_server_notice()
     # delete_room()
     # show_server_version()
+    list_messages()

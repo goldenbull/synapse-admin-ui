@@ -5,8 +5,11 @@ verify_ssl = true
 
 [packages]
 arrow = "*"
+fastapi = "*"
 pandas = "*"
 requests = "*"
+websockets = "*"
+uvicorn = "*"
 
 [requires]
 python_version = "3.10"
