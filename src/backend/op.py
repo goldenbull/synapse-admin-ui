@@ -5,7 +5,7 @@ import requests
 import json
 
 host = "http://localhost:8008"
-admin_token = "syt_YWRtaW4_OcNnpGDumDEkiYeyPXas_0yuOxS"
+admin_token = "syt_YWRtaW4_EiCPJozmnOpQAzhxzusB_3PCsxv"
 headers = {"Authorization": f"Bearer {admin_token}"}
 user_id = "@yiyangqianniu2.0:data.sfuc9tsqc4qwkjm.com"
 room_id = "!cZKVGapltTxGoZfbMO:data.sfuc9tsqc4qwkjm.com"
@@ -117,6 +117,16 @@ def purge_media():
     url = "POST /_synapse/admin/v1/media/delete?before_ts=<before_ts>"
 
 
+def disable_user():
+    to_del = "@tiantong:fight.haohaoxuexi.live"
+    url = f"/_synapse/admin/v1/deactivate/{to_del}"
+    data = {"erase": True}
+    rsp = requests.post(f"{host}{url}",
+                        data=json.dumps(data),
+                        headers=headers)
+    print(rsp.json())
+
+
 if __name__ == '__main__':
     # users = list_users()
     # query_all_user_session(users)
@@ -128,4 +138,5 @@ if __name__ == '__main__':
     # send_server_notice()
     # delete_room()
     # show_server_version()
-    list_messages()
+    # list_messages()
+    disable_user()

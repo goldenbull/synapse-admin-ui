@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from dataclasses import dataclass
 import uvicorn
 import datetime
 from pprint import pprint
@@ -11,7 +12,39 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import psycopg2
+from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor
+import pandas as pd
+import numpy as np
+
+
+# region global vars
+
+@dataclass
+class GlobalVars:
+    pgsql_dsn: str = "postgresql://synapse_user:4dCPPJKLnCNoJTANShTQWErasdwO@localhost:5432/synapse"
+    admin_token: str = "syt_YWRtaW4_EiCPJozmnOpQAzhxzusB_3PCsxv"
+    host: str = "http://localhost:8008"
+    conn: connection = None
+
+    @property
+    def headers(self):
+        return {"Authorization": f"Bearer {self.admin_token}"}
+
+    def merge_url(self, url: str):
+        return f"{self.host}{url}"
+
+    def get_conn(self):
+        if self.conn is None:
+            self.conn = psycopg2.connect(dsn=self.pgsql_dsn)
+        return self.conn
+
+
+_g = GlobalVars()
+
+# endregion
+
+# region setup webapp
 
 app = FastAPI()
 
@@ -25,26 +58,27 @@ app.add_middleware(
 
 app.mount("/ui", StaticFiles(directory="../frontend/dist", html=True), name="ui")
 
-host = "http://localhost:8008"
-admin_token = "syt_YWRtaW4_EiCPJozmnOpQAzhxzusB_3PCsxv"
-headers = {"Authorization": f"Bearer {admin_token}"}
 
-db_conn = psycopg2.connect(database="synapse",
-                           host="localhost",
-                           user="synapse_user",
-                           password="4dCPPJKLnCNoJTANShTQWErasdwO",
-                           port="5432")
+# endregion
 
 
+# homepage
 @app.get("/")
 def index():
     return RedirectResponse("/ui")
 
 
+# region http api getters
+
+@app.get("/api/echo")
+def echo():
+    return str(arrow.get())
+
+
 @app.get("/api/users")
 def read_item():
     url = "/_synapse/admin/v2/users?from=0&limit=100&guests=false"
-    rsp = requests.get(f"{host}{url}", headers=headers)
+    rsp = requests.get(_g.merge_url(url), headers=_g.headers)
     data = rsp.json()
     pprint(data)
     users = data["users"]
@@ -53,9 +87,11 @@ def read_item():
 
 @app.get("/api/list-inactive")
 def list_inactive():
-    cur = db_conn.cursor(cursor_factory=RealDictCursor)
-    sql = """SELECT user_id, device_id, user_agent, TO_TIMESTAMP(last_seen / 1000) AS "last_seen" FROM devices
-           WHERE last_seen < DATE_PART('epoch', NOW() - INTERVAL '1 month') * 1000; """
+    cur = _g.get_conn().cursor(cursor_factory=RealDictCursor)
+    sql = """SELECT user_id, device_id, user_agent, TO_TIMESTAMP(last_seen / 1000) AS "last_seen"
+             FROM devices
+             WHERE last_seen < DATE_PART('epoch', NOW() - INTERVAL '1 month') * 1000
+             order by last_seen; """
     cur.execute(sql)
     data = cur.fetchall()
     print(data)
@@ -65,9 +101,36 @@ def list_inactive():
 @app.get("/api/rooms")
 def list_rooms():
     url = "/_synapse/admin/v1/rooms"
-    rsp = requests.get(f"{host}{url}", headers=headers)
+    rsp = requests.get(_g.merge_url(url), headers=_g.headers)
     data = rsp.json()
     return data["rooms"]
+
+
+@app.get("/api/data0")
+def test_table_data0():
+    data: pd.DataFrame = pd.DataFrame(index=list(range(100)))
+    data["code"] = data.index.map('code{:06d}'.format)
+    ts = list(arrow.Arrow.range("minute", arrow.get(), limit=len(data)))
+    data["timestamp"] = pd.to_datetime([t.naive for t in ts])
+    data["timestamp"] += pd.to_timedelta(np.random.randint(0, 10000000, len(data)), "ns")
+    data["timestamp_str1"] = data["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S.%f") + \
+                             data["timestamp"].dt.nanosecond.map("{:03d}".format)
+    data["timestamp_str2"] = data["timestamp"].apply(lambda t: t.isoformat())
+    data["close"] = np.random.rand(len(data))
+    data["volume"] = np.random.rand(len(data)) * 10000
+    # return json.loads(data.to_json(orient="records", date_format="iso", date_unit="us"))
+    return data.to_dict(orient="records")
+
+
+@app.get("/api/data1")
+def test_table_data1():
+    data: pd.DataFrame = pd.read_pickle("sample-data.pkl.xz")
+    data = data.iloc[:10]
+    return json.loads(data.to_json(orient="records", date_format="iso", date_unit="us"))
+    # return data.to_dict(orient="records")
+
+
+# endregion
 
 def send_server_notice():
     url = "/_synapse/admin/v1/send_server_notice"
@@ -78,11 +141,11 @@ def send_server_notice():
             "body": "这是一条测试信息，测试管理员广播消息的功能"
         }
     }
-    rsp = requests.post(f"{host}{url}",
+    rsp = requests.post(_g.merge_url(url),
                         json.dumps(data),
-                        headers=headers)
+                        headers=_g.headers)
     print(rsp.json())
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
