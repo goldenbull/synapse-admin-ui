@@ -1,12 +1,12 @@
 <template>
   <h1>Purge history</h1>
   <div class="row m-2">
-    <Datepicker
-        v-model="purge_timepoint"
-        inline
-        inlineWithInput
-        auto-apply
-    />
+<!--    <Datepicker-->
+<!--        v-model="purge_timepoint"-->
+<!--        inline-->
+<!--        inlineWithInput-->
+<!--        auto-apply-->
+<!--    />-->
   </div>
   <div class="row m-2">
     <p class="text-break">
@@ -27,10 +27,8 @@
 
 import {ref, onMounted} from 'vue';
 import {DateTime} from "luxon";
-import Datepicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css';
 import axios, {AxiosError} from "axios";
-import {useStore} from "../data/store";
+import {useStore} from "@/data/store";
 
 const store = useStore();
 const purge_timepoint = ref(new Date());
@@ -52,11 +50,11 @@ function dumpError(err: unknown) {
 
 async function purge() {
   // 清除全部数据
-  debug_msg.value = [`删除 ${store.server_name} 上位于 ${DateTime.fromJSDate(purge_timepoint.value).toISO()} 之前的数据`];
+  debug_msg.value = [`删除 ${store} 上位于 ${DateTime.fromJSDate(purge_timepoint.value).toISO()} 之前的数据`];
   const ts = purge_timepoint.value.getTime();
 
   // 先删除media
-  debug_msg.value.push(`删除${store.server_name}上的media...`);
+  debug_msg.value.push(`删除${store}上的media...`);
   try {
     const rsp = await axios.post(`proxy/_synapse/admin/v1/media/${store.server_name}/delete?before_ts=${ts}`,
         {},

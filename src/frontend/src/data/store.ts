@@ -1,10 +1,6 @@
-import {defineStore} from 'pinia'
+import {defineStore} from 'pinia';
 import axios, {AxiosError} from "axios";
-import {router} from "../main";
-
-////////////////////////////////////////////////////////////////////////////////
-// hardcode的全局常量
-export const synapse_server = import.meta.env.VITE_SYNAPSE_SERVER;
+import {router} from "@/main";
 
 ////////////////////////////////////////////////////////////////////////////////
 // 全局状态的处理
@@ -16,9 +12,11 @@ export const useStore = defineStore(
         state: () => {
             console.log("init store");
             return {
+                pgsql_conn_str: "",
+                token: "",
+
                 // 登录信息
                 user_id: "",
-                token: "",
 
                 // users
                 users: [],
@@ -32,6 +30,7 @@ export const useStore = defineStore(
             };
         },
 
+        /*
         getters: {
             isLogin: (state) => {
                 return state.user_id != "" && state.token != "";
@@ -46,8 +45,11 @@ export const useStore = defineStore(
                 }
             },
         },
+        */
     }
 );
+
+/*
 
 function check_token(user_id: string, token: string) {
     // 确保token有效，而且是admin权限
@@ -112,3 +114,4 @@ export async function logout() {
     localStorage.removeItem("token");
     await router.push("/login");
 }
+*/
