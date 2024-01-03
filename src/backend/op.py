@@ -118,7 +118,7 @@ def purge_media():
 
 
 def disable_user():
-    to_del = "@tiantong:fight.haohaoxuexi.live"
+    to_del = "@pijiu:fight.haohaoxuexi.live"
     url = f"/_synapse/admin/v1/deactivate/{to_del}"
     data = {"erase": True}
     rsp = requests.post(f"{host}{url}",
