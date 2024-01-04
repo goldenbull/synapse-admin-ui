@@ -24,6 +24,7 @@ import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import {useStore} from "@/data/store";
 import {ref} from "vue";
+import axios from "axios";
 
 const store = useStore();
 let connstr = ref(store.pgsql_conn_str);
@@ -32,6 +33,13 @@ let token = ref(store.token);
 function save_cfg() {
   store.pgsql_conn_str = connstr;
   store.token = token;
+  axios.post(
+      "/savecfg",
+      {
+        connstr: connstr.value,
+        token: token.value,
+      },
+   )
 }
 
 </script>

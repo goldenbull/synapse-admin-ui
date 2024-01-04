@@ -12,8 +12,8 @@ export const useStore = defineStore(
         state: () => {
             console.log("init store");
             return {
-                pgsql_conn_str: "",
-                token: "",
+                pgsql_conn_str: "postgresql://synapse_user:4dCPPJKLnCNoJTANShTQWErasdwO@localhost:5432/synapse",
+                token: "syt_YWRtaW4_EiCPJozmnOpQAzhxzusB_3PCsxv",
 
                 // 登录信息
                 user_id: "",

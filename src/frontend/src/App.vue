@@ -21,10 +21,10 @@
 
   <!-- 主面板 -->
   <main class="px-1 pt-6 mt-6 pb-1 absolute top-0 left-0">
-    <p>debug</p>
-    <div class="border-3 border-blue-100 p-4">
-      <router-view></router-view>
-    </div>
+    <!--    <p>debug</p>-->
+    <!--    <div class="border-3 border-blue-100 p-4">-->
+    <router-view></router-view>
+    <!--    </div>-->
   </main>
 
 </template>

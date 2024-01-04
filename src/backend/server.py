@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from dataclasses import dataclass
 import uvicorn
-import datetime
 from pprint import pprint
 import arrow
 import requests
 import json
-from fastapi import FastAPI, WebSocket
+from arrow import Arrow
+from fastapi import FastAPI, WebSocket, Body
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -26,6 +27,8 @@ class GlobalVars:
     admin_token: str = "syt_YWRtaW4_EiCPJozmnOpQAzhxzusB_3PCsxv"
     host: str = "http://localhost:8008"
     conn: connection = None
+    prev_load_user: Arrow = arrow.get(0)
+    all_users = []
 
     @property
     def headers(self):
@@ -75,13 +78,47 @@ def echo():
     return str(arrow.get())
 
 
-@app.get("/api/users")
-def read_item():
-    url = "/_synapse/admin/v2/users?from=0&limit=100&guests=false"
-    rsp = requests.get(_g.merge_url(url), headers=_g.headers)
-    data = rsp.json()
+def to_str(b: bool):
+    return "true" if b else "false"
+
+
+@app.post("/api/savecfg")
+async def savecfg(data=Body(None)):
     pprint(data)
-    users = data["users"]
+    _g.pgsql_dsn = data["connstr"]
+    _g.admin_token = data["token"]
+    logging.info("config saved")
+    return True
+
+
+@app.get("/api/all-users")
+def read_item(deactivated: bool = False, force_reload: bool = False):
+    # 提供cache机制
+    diff = arrow.get() - _g.prev_load_user
+    if diff.total_seconds() < 600 and not force_reload:
+        return _g.all_users
+
+    print("=== reload all users ===")
+    next_token = 0
+    users = []
+    while True:
+        url = f"/_synapse/admin/v2/users?from={next_token}&limit=100&guests=false&deactivated={to_str(deactivated)}"
+        print(_g.headers)
+        rsp = requests.get(_g.merge_url(url), headers=_g.headers)
+        data = rsp.json()
+        print(type(data))
+        print(data)
+        cur_users = data["users"]
+        next_token = data["next_token"] if "next_token" in data else -1
+        logging.info(f"get {len(cur_users)} from server, next token: {next_token}")
+        users.extend(cur_users)
+        if next_token == -1:
+            break
+
+    # update cache
+    _g.prev_load_user = arrow.get()
+    _g.all_users = users
+
     return users
 
 
@@ -148,4 +185,4 @@ def send_server_notice():
 
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True, log_level=logging.INFO)
