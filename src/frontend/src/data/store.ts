@@ -30,11 +30,15 @@ export const useStore = defineStore(
             };
         },
 
-        /*
         getters: {
+            isConfigurated: (self) => {
+                return self.pgsql_conn_str != "" && self.token != "";
+            },
+
             isLogin: (state) => {
                 return state.user_id != "" && state.token != "";
             },
+
             server_name: (state) => {
                 // 从登陆user_id中拆出server_name
                 const ss = state.user_id.split(":");
@@ -45,7 +49,6 @@ export const useStore = defineStore(
                 }
             },
         },
-        */
     }
 );
 
