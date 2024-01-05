@@ -31,8 +31,8 @@ let connstr = ref(store.pgsql_conn_str);
 let token = ref(store.token);
 
 function save_cfg() {
-  store.pgsql_conn_str = connstr;
-  store.token = token;
+  store.pgsql_conn_str = connstr.value;
+  store.token = token.value;
   axios.post(
       "/savecfg",
       {

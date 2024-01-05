@@ -147,7 +147,7 @@ def list_rooms():
 def test_table_data0():
     data: pd.DataFrame = pd.DataFrame(index=list(range(100)))
     data["code"] = data.index.map('code{:06d}'.format)
-    ts = list(arrow.Arrow.range("minute", arrow.get(), limit=len(data)))
+    ts = list(arrow.Arrow.range("minute", arrow.get().ceil("second"), limit=len(data)))
     data["timestamp"] = pd.to_datetime([t.naive for t in ts])
     data["timestamp"] += pd.to_timedelta(np.random.randint(0, 10000000, len(data)), "ns")
     data["timestamp_str1"] = data["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S.%f") + \
@@ -157,14 +157,6 @@ def test_table_data0():
     data["volume"] = np.random.rand(len(data)) * 10000
     # return json.loads(data.to_json(orient="records", date_format="iso", date_unit="us"))
     return data.to_dict(orient="records")
-
-
-@app.get("/api/data1")
-def test_table_data1():
-    data: pd.DataFrame = pd.read_pickle("sample-data.pkl.xz")
-    data = data.iloc[:10]
-    return json.loads(data.to_json(orient="records", date_format="iso", date_unit="us"))
-    # return data.to_dict(orient="records")
 
 
 # endregion

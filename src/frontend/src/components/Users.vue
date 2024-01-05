@@ -1,5 +1,8 @@
 <template>
   <DataTable :value="data"
+             sortField="name"
+             :sortOrder="-1"
+             removableSort
              resizableColumns
              columnResizeMode="fit"
              showGridlines
@@ -13,7 +16,7 @@
     <Column field="displayname" header="displayname"></Column>
     <Column field="creation_ts" header="creation"></Column>
   </DataTable>
-  <Button @click="reload(true)">Reload</Button>
+  <Button class="m-2" @click="reload(true)">Reload</Button>
 </template>
 
 <script setup lang="ts">
