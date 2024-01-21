@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import pickle
 from dataclasses import dataclass
 import uvicorn
 from pprint import pprint
@@ -94,32 +95,38 @@ async def savecfg(data=Body(None)):
 @app.get("/api/all-users")
 def read_item(deactivated: bool = False, force_reload: bool = False):
     # 提供cache机制
-    diff = arrow.get() - _g.prev_load_user
-    if diff.total_seconds() < 600 and not force_reload:
-        return _g.all_users
+    cache_fname = "./cache/all-users.pkl"
+    if not force_reload:
+        _g.all_users = None
+        try:
+            _g.all_users = pickle.load(open(cache_fname, "rb"))
+        except Exception:
+            logging.exception("can not read users from cache")
 
-    print("=== reload all users ===")
-    next_token = 0
-    users = []
-    while True:
-        url = f"/_synapse/admin/v2/users?from={next_token}&limit=100&guests=false&deactivated={to_str(deactivated)}"
-        print(_g.headers)
-        rsp = requests.get(_g.merge_url(url), headers=_g.headers)
-        data = rsp.json()
-        print(type(data))
-        print(data)
-        cur_users = data["users"]
-        next_token = data["next_token"] if "next_token" in data else -1
-        logging.info(f"get {len(cur_users)} from server, next token: {next_token}")
-        users.extend(cur_users)
-        if next_token == -1:
-            break
+    if force_reload or _g.all_users is None:
+        print("=== reload all users ===")
+        next_token = 0
+        users = []
+        while True:
+            url = f"/_synapse/admin/v2/users?from={next_token}&limit=100&guests=false&deactivated={to_str(deactivated)}"
+            print(_g.headers)
+            rsp = requests.get(_g.merge_url(url), headers=_g.headers)
+            data = rsp.json()
+            print(type(data))
+            print(data)
+            cur_users = data["users"]
+            next_token = data["next_token"] if "next_token" in data else -1
+            logging.info(f"get {len(cur_users)} from server, next token: {next_token}")
+            users.extend(cur_users)
+            if next_token == -1:
+                break
 
-    # update cache
-    _g.prev_load_user = arrow.get()
-    _g.all_users = users
+        # update cache
+        _g.prev_load_user = arrow.get()
+        _g.all_users = users
+        pickle.dump(_g.all_users, open(cache_fname, "wb"))
 
-    return users
+    return _g.all_users
 
 
 @app.get("/api/list-inactive")
