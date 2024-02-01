@@ -15,13 +15,13 @@
              paginator :rows="20" :rowsPerPageOptions="[5, 10, 20, 50]"
              class="border-3"
   >
-    <Column field="code" sortable header="Code"></Column>
-    <Column field="timestamp" sortable header="ts"></Column>
-    <Column field="timestamp_str1" sortable header="ts1"></Column>
-    <Column field="timestamp_str2" header="ts2"></Column>
-    <Column field="ts3" header="ts3"></Column>
-    <Column field="close" header="Price"></Column>
-    <Column field="volume" header="Vol"></Column>
+    <Column field="code" sortable header="Code"/>
+    <Column field="timestamp" sortable header="ts"/>
+    <Column field="timestamp_str1" sortable header="ts1"/>
+    <Column field="timestamp_str2" header="ts2"/>
+    <Column field="ts3" header="ts3"/>
+    <Column field="close" header="Price"/>
+    <Column field="volume" header="Vol"/>
   </DataTable>
 
 </template>
@@ -54,18 +54,26 @@ let items = ref(
     [
       // {name: "@2833", value: "2833"},
       // {name: "@a0", value: "a0"},
-      {name: "@09091a", value: "090"},
-      {name: "@11-", value: "11"},
-      {name: "@168a", value: "168a"},
+      {name: "@09091a", value: "a090"},
+      {name: "@11-", value: "a11"},
+      {name: "@168a", value: "a16"},
     ])
 
 let arr = [];
 for (const x of items.value) {
   arr.push(x.value);
 }
-console.log(arr);
-arr.sort();
-console.log(arr);
+
+// console.log(arr);
+// arr.sort();
+// console.log(arr);
+
+let ss = ["a11", "a16", "a090"];
+console.log("numeric=true:" + ss.sort(new Intl.Collator('en', {numeric: true}).compare));
+// output: numeric=true:a11,a16,a090
+console.log("numeric=false:" + ss.sort(new Intl.Collator('en', {numeric: false}).compare));
+// output: numeric=false:a090,a11,a16
+
 </script>
 
 <style scoped>
