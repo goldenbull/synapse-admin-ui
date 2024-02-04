@@ -18,6 +18,7 @@ from psycopg2.extensions import connection
 from psycopg2.extras import RealDictCursor
 import pandas as pd
 import numpy as np
+import os
 
 
 # region global vars
@@ -60,6 +61,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+os.makedirs("../frontend/dist", exist_ok=True)
 app.mount("/ui", StaticFiles(directory="../frontend/dist", html=True), name="ui")
 
 
@@ -95,6 +97,7 @@ async def savecfg(data=Body(None)):
 @app.get("/api/all-users")
 def read_item(deactivated: bool = False, force_reload: bool = False):
     # 提供cache机制
+    os.makedirs("./cache", exist_ok=True)
     cache_fname = "./cache/all-users.pkl"
     if not force_reload:
         _g.all_users = None

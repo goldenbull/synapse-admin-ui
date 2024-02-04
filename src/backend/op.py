@@ -1,4 +1,6 @@
 import datetime
+import logging
+import time
 from pprint import pprint
 import arrow
 import requests
@@ -80,6 +82,32 @@ def send_server_notice():
     print(rsp.json())
 
 
+def broadcast_server_notice():
+    users = list_users()
+    url = "/_synapse/admin/v1/send_server_notice"
+    for user in users:
+        while True:
+            user_id = user["name"]
+            logging.info(f"sending notice to {user_id}")
+            data = {
+                "user_id": user_id,
+                "content": {
+                    "msgtype": "m.text",
+                    "body": "Important Notice: This server will be stopped permanently in one month. Please move to other servers. Goodbye."
+                }
+            }
+            rsp = requests.post(f"{host}{url}",
+                                json.dumps(data),
+                                headers=headers)
+            status = rsp.json()
+            logging.info(status)
+            if "error" not in status:
+                break
+
+            # retry
+            time.sleep(1)
+
+
 def delete_room():
     url = f"/_synapse/admin/v1/rooms/{room_id}"
     data = {
@@ -128,6 +156,9 @@ def disable_user():
 
 
 if __name__ == '__main__':
+    FORMAT = '%(asctime)s.%(msecs)03d,[%(levelname)s],%(process)5d,%(filename)s:%(lineno)4d,[%(funcName)s], %(message)s'
+    DATEFMT = "%Y-%m-%d %H:%M:%S"
+    logging.basicConfig(level=logging.INFO, format=FORMAT, datefmt=DATEFMT)
     # users = list_users()
     # query_all_user_session(users)
     # list_activities()
@@ -139,4 +170,5 @@ if __name__ == '__main__':
     # delete_room()
     # show_server_version()
     # list_messages()
-    disable_user()
+    # disable_user()
+    broadcast_server_notice()
