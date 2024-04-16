@@ -14,6 +14,13 @@ import TestPage from '@/components/TestPage.vue';
 import {createRouter, createWebHistory} from "vue-router";
 import {createPinia} from "pinia";
 import {useStore} from "./data/store";
+import {ObjectUtils} from "primevue/utils";
+
+// replace primevue ObjectUtils function
+ObjectUtils.localeComparator = function () {
+    return new Intl.Collator(undefined, {numeric: false}).compare;
+}
+
 
 axios.defaults.baseURL = import.meta.env.VITE_APP_API_ENDPOINT;
 
